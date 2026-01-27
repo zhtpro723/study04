@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SparkleClean - 产品调研活动</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#36CFC9',
+            accent: '#FF7D00',
+            dark: '#1D2129',
+            light: '#F2F3F5'
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+    
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto { content-visibility: auto; }
+      .text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+      .transition-custom { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      .hover-scale { transition: transform 0.3s ease; }
+      .hover-scale:hover { transform: scale(1.03); }
+      .bg-gradient-custom { background: linear-gradient(135deg, #165DFF 0%, #36CFC9 100%); }
+      .loading { animation: pulse 2s infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+      .page {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+        transform: translateY(20px);
+      }
+      .page.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .prize-option { transition: all 0.3s ease; }
+      .prize-option.selected {
+        border-color: #165DFF;
+        background-color: rgba(22, 93, 255, 0.05);
+      }
+      .btn-primary {
+        @apply relative overflow-hidden bg-gradient-to-r from-primary to-secondary text-white font-bold py-4 px-8 sm:px-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-primary/30 text-center text-lg w-full sm:w-auto;
+      }
+      .btn-primary::after {
+        @apply content-[''] absolute top-0 left-0 w-full h-full bg-white/10 transform -translate-x-full transition-transform duration-500;
+      }
+      .btn-primary:hover::after { @apply transform translate-x-full; }
+      .thumb-scroll-container { @apply relative overflow-hidden; }
+      .thumb-scroll { @apply flex space-x-3 transition-transform duration-300 ease-out; }
+      .scroll-btn {
+        @apply absolute top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center text-primary hover:bg-white transition-colors duration-300 z-10;
+      }
+      .modal-nav-btn {
+        @apply absolute top-1/2 transform -translate-y-1/2 w-14 h-14 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors duration-300 z-10;
+      }
+      .mobile-padding { @apply px-4 sm:px-6 lg:px-8; }
+      .mobile-margin { @apply mx-4 sm:mx-6 lg:mx-8; }
+      .lottery-loading {
+        @apply inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2;
+      }
+      
+      /* 核心修改1：滑条分数显示移至上方，三角朝下且完全在圆圈外 */
+      .slider-value-display {
+        @apply w-10 h-10 rounded-full bg-primary text-white font-semibold flex items-center justify-center shadow-md my-2 mx-auto text-base relative;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: 0 4px 6px -1px rgba(22, 93, 255, 0.3);
+      }
+      /* 三角指示：完全在圆圈外部朝下（核心调整） */
+      .slider-value-display::after {
+        content: '';
+        @apply absolute w-2.5 h-2.5 bg-primary transform rotate-45 bottom-[-6px]; /* bottom改为负值，让三角完全在圆圈外 */
+        left: 50%;
+        transform: translateX(-50%) rotate(45deg);
+        /* 确保三角不被气泡遮挡，且视觉上是气泡的尖角 */
+        box-shadow: 2px 2px 3px -1px rgba(22, 93, 255, 0.2);
+      }
+      /* 分数容器优化，保证气泡和滑条间距（给三角留出空间） */
+      .slider-value-wrapper {
+        @apply relative flex justify-center mt-1 mb-3; /* 增加下间距，避免三角和滑条重叠 */
+      }
+      
+      /* 滑条样式深度优化 */
+      .custom-slider {
+        @apply w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer relative;
+        -webkit-appearance: none;
+        touch-action: manipulation;
+        padding: 0;
+      }
+      .custom-slider::-webkit-slider-thumb {
+        @apply appearance-none w-6 h-6 rounded-full bg-primary border-2 border-white shadow-lg transition-all duration-200 hover:scale-125 hover:bg-primary/90;
+        margin-top: -6px;
+      }
+      .custom-slider::-moz-range-thumb {
+        @apply w-6 h-6 rounded-full bg-primary border-2 border-white shadow-lg transition-all duration-200 hover:scale-125 hover:bg-primary/90;
+      }
+      .custom-slider::-webkit-slider-runnable-track {
+        @apply h-2 bg-gray-200 rounded-lg;
+      }
+      .custom-slider::-moz-range-track {
+        @apply h-2 bg-gray-200 rounded-lg;
+      }
+      
+      /* 滑条容器优化 */
+      .slider-container {
+        @apply mb-6 relative;
+        padding-bottom: 0.5rem;
+      }
+      /* 核心修改2：题项字体显著放大 */
+      .slider-label {
+        @apply block text-gray-700 font-medium mb-1 text-base leading-relaxed;
+      }
+      .slider-ticks {
+        @apply flex justify-between text-xs text-gray-500 mt-1;
+        position: relative;
+      }
+      .slider-ticks::before {
+        content: '';
+        @apply absolute top-1/2 left-0 right-0 h-0.5 bg-gray-300 -translate-y-1/2;
+        z-index: 0;
+      }
+      .slider-ticks span {
+        @apply relative z-10 bg-light px-1 py-0.5;
+      }
+    }
+    
+    /* 移动端深度优化 - 适配各种手机屏幕（三角同步在圆圈外） */
+    @media (max-width: 640px) {
+      #survey section {
+        padding-top: 20px !important;
+        padding-bottom: 12px !important;
+      }
+      
+      #consumerSurveyForm {
+        padding: 8px 10px 24px !important;
+        margin: 0 -6px !important;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+      }
+      
+      #survey h2 {
+        font-size: 1rem !important;
+        margin-bottom: 6px !important;
+        padding-top: 4px !important;
+      }
+      
+      #survey p {
+        font-size: 0.8rem !important;
+        line-height: 1.4 !important;
+        margin-bottom: 8px !important;
+      }
+      
+      /* 滑条移动端专属优化 */
+      .slider-container {
+        margin-bottom: 8px !important;
+        padding-bottom: 0.25rem !important;
+      }
+      
+      /* 核心修改3：移动端题项字体也放大 */
+      .slider-label {
+        font-size: 0.9rem !important;
+        line-height: 1.4 !important;
+        margin-bottom: 4px !important;
+      }
+      
+      .slider-value-display {
+        @apply w-8 h-8 text-sm my-1 relative;
+      }
+      
+      /* 移动端三角完全在圆圈外（适配小尺寸气泡） */
+      .slider-value-display::after {
+        @apply w-2 h-2 bottom-[-4px]; /* 更小的三角，更短的负值，确保在圆圈外 */
+      }
+      
+      /* 奖品选项移动端优化 */
+      .prize-option {
+        padding: 6px !important;
+        border-radius: 8px !important;
+      }
+      
+      .prize-option img {
+        border-radius: 6px !important;
+        margin-bottom: 2px !important;
+      }
+      
+      .prize-option h3 {
+        font-size: 0.7rem !important;
+        padding: 0 !important;
+      }
+      
+      /* 表单元素移动端优化 */
+      #survey select, 
+      #survey input[type="number"] {
+        padding: 8px 10px !important;
+        font-size: 0.85rem !important;
+        border-radius: 8px !important;
+      }
+      
+      #survey label[for="gender"],
+      #survey label[for="age"] {
+        font-size: 0.8rem !important;
+        margin-bottom: 4px !important;
+      }
+      
+      /* 抽奖按钮移动端优化 */
+      #lotteryBtn {
+        padding: 10px 4px !important;
+        font-size: 0.9rem !important;
+        margin-top: 6px !important;
+        border-radius: 8px !important;
+      }
+      
+      /* 分隔线和间距优化 */
+      #survey .border-b {
+        margin-bottom: 8px !important;
+        padding-bottom: 8px !important;
+        border-color: #f0f0f0 !important;
+      }
+      
+      #survey .text-xs {
+        font-size: 0.65rem !important;
+        line-height: 1.3 !important;
+        padding: 0 2px !important;
+        margin-top: 4px !important;
+      }
+      
+      #survey .grid-cols-1 > div {
+        margin-bottom: 8px !important;
+      }
+      
+      #survey .grid-cols-2 {
+        gap: 2px !important;
+      }
+      
+      /* 修复移动端滑条触控区域 */
+      .custom-slider {
+        height: 8px !important;
+      }
+      
+      .custom-slider::-webkit-slider-thumb {
+        width: 20px !important;
+        height: 20px !important;
+        margin-top: -6px !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="font-inter bg-light text-dark antialiased">
+  <!-- 导航栏 -->
+  <header id="navbar" class="fixed w-full z-50 transition-all duration-300 bg-white/98 backdrop-blur-sm shadow-sm">
+    <div class="container mx-auto mobile-padding">
+      <div class="flex justify-between items-center py-3">
+        <a href="#" class="flex items-center space-x-2" id="homeLink">
+          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+            <i class="fa fa-bolt text-white text-sm"></i>
+          </div>
+          <span class="text-base sm:text-xl font-bold text-primary">SparkleClean</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-2">
+          <div class="w-3 h-3 rounded-full bg-primary" id="progress1"></div>
+          <div class="w-8 h-1 bg-gray-300">
+            <div class="h-full bg-primary transition-all duration-500" id="progressBar1" style="width: 0%"></div>
+          </div>
+          <div class="w-3 h-3 rounded-full bg-gray-300" id="progress2"></div>
+          <div class="w-8 h-1 bg-gray-300">
+            <div class="h-full bg-primary transition-all duration-500" id="progressBar2" style="width: 0%"></div>
+          </div>
+          <div class="w-3 h-3 rounded-full bg-gray-300" id="progress3"></div>
+        </div>
+        <div class="flex md:hidden items-center space-x-1">
+          <div class="w-2 h-2 rounded-full bg-primary" id="mobileProgress1"></div>
+          <div class="w-2 h-2 rounded-full bg-gray-300" id="mobileProgress2"></div>
+          <div class="w-2 h-2 rounded-full bg-gray-300" id="mobileProgress3"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 页面一：活动介绍 -->
+    <div id="home" class="page active">
+      <section class="pt-28 pb-12 md:pt-36 md:pb-24 bg-gradient-to-b from-white to-light">
+        <div class="container mx-auto mobile-padding">
+          <div class="max-w-3xl mx-auto text-center">
+            <h1 class="text-[clamp(1.8rem,8vw,3.5rem)] font-bold text-dark mb-4 leading-tight">
+              参与调研，<br>赢取 SparkleClean Pro 电动牙刷
+            </h1>
+            <p class="text-gray-700 text-base sm:text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
+              我们正在开发一款口腔护理产品，您的意见对我们至关重要。完成简短调研，即有机会免费获得最新款 SparkleClean 普通牙刷！阅读完毕后，请点击下方的“了解产品”按钮参与活动！
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+              <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3 mx-auto">
+                  <i class="fa fa-list-alt text-primary text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-2">完成调研</h3>
+                <p class="text-gray-600 text-sm">回答几个简单问题，分享您的想法</p>
+              </div>
+              <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3 mx-auto">
+                  <i class="fa fa-gift text-primary text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-2">参与抽奖</h3>
+                <p class="text-gray-600 text-sm">有机会赢取精美牙刷</p>
+              </div>
+              <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3 mx-auto">
+                  <i class="fa fa-check-circle text-primary text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-2">等待结果</h3>
+                <p class="text-gray-600 text-sm">抽奖结果将在活动结束后公布</p>
+              </div>
+            </div>
+            <div class="relative mb-2">
+              <a href="#" class="nav-link btn-primary block" data-page="product">
+                <span class="relative z-10">了解产品 <i class="fa fa-arrow-right ml-2"></i></span>
+              </a>
+            </div>
+            <div class="mt-10 text-gray-500 text-xs sm:text-sm">
+              <p>活动时间: 2025年12月1日 - 2025年12月30日</p>
+              <p class="mt-1">我们将随机抽取幸运参与者赠送产品，获奖名单将在活动结束后7个工作日内公布</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 页面二：产品介绍 -->
+    <div id="product" class="page">
+      <section class="pt-28 pb-12 md:pt-36 md:pb-24 bg-gradient-to-b from-white to-light">
+        <div class="container mx-auto mobile-padding">
+          <div class="text-center mb-10">
+            <h1 class="text-[clamp(1.5rem,6vw,2.5rem)] font-bold text-dark mb-3">SparkleClean 普通牙刷</h1>
+            <p class="text-gray-600 text-base" id="imageProgress">请浏览所有产品图片以继续：<span class="text-primary">0/4</span></p>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-12">
+            <div class="relative">
+              <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDdpOUbuj9w7yaifTukW8DiIZKSOEQACThwAApKD0FVYUnIixSSO2zYE.jpg"  alt="SparkleClean 普通牙刷（紫色款）" class="w-full h-auto rounded-2xl shadow-xl hover-scale cursor-pointer" id="mainProductImage">
+              <div class="thumb-scroll-container mt-4">
+                <button id="scrollLeft" class="scroll-btn left-1 opacity-0 pointer-events-none">
+                  <i class="fa fa-chevron-left"></i>
+                </button>
+                <div class="overflow-x-auto pb-3" id="thumbContainer">
+                  <div class="thumb-scroll" id="thumbScroll">
+                    <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDdpOUbuj9w7yaifTukW8DiIZKSOEQACThwAApKD0FVYUnIixSSO2zYE.jpg" alt="新款牙刷1" class="w-24 h-24 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer product-thumb selected" data-img="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDdpOUbuj9w7yaifTukW8DiIZKSOEQACThwAApKD0FVYUnIixSSO2zYE.jpg" data-id="1">
+                    <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDppOUcFPHIo0UvGipp4Ui4TE2TGQgACURwAApKD0FXsKYrqhOIlFDYE.jpg" alt="新款牙刷2" class="w-24 h-24 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer product-thumb" data-img="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDppOUcFPHIo0UvGipp4Ui4TE2TGQgACURwAApKD0FXsKYrqhOIlFDYE.jpg" data-id="2">
+                    <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDtpOUcYhwzZAmlxf0ui-yMBijU5mAACUhwAApKD0FXTQYSE0vZlmDYE.jpg" alt="新款牙刷3" class="w-24 h-24 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer product-thumb" data-img="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDtpOUcYhwzZAmlxf0ui-yMBijU5mAACUhwAApKD0FXTQYSE0vZlmDYE.jpg" data-id="3">
+                    <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcD1pOUcklWldv5lP6alRnQ8h6NJ6HgACVBwAApKD0FU_IUKdC_qvyDYE.jpg" alt="新款牙刷4" class="w-24 h-24 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer product-thumb" data-img="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcD1pOUcklWldv5lP6alRnQ8h6NJ6HgACVBwAApKD0FU_IUKdC_qvyDYE.jpg" data-id="4">
+                  </div>
+                </div>
+                <button id="scrollRight" class="scroll-btn right-1">
+                  <i class="fa fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+            <div class="mt-4 lg:mt-0">
+              <h2 class="text-xl font-bold mb-5">为什么选择 SparkleClean？</h2>
+              <div class="space-y-5">
+                <div class="flex">
+                  <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                    <i class="fa fa-check text-primary"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold mb-1">优质软毛</h3>
+                    <p class="text-gray-700 text-sm">柔软刷毛，深入清洁牙缝同时温柔呵护牙龈，适合日常使用</p>
+                  </div>
+                </div>
+                <div class="flex">
+                  <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                    <i class="fa fa-cog text-primary"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold mb-1">舒适手柄设计</h3>
+                    <p class="text-gray-700 text-sm">符合人体工学的防滑手柄，提供舒适握持体验，精准控制</p>
+                  </div>
+                </div>
+                <div class="flex">
+                  <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                    <i class="fa fa-tint text-primary"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold mb-1">耐用材质</h3>
+                    <p class="text-gray-700 text-sm">刷毛采用耐用尼龙材质，手柄采用食品级PP材料，安全卫生</p>
+                  </div>
+                </div>
+                <div class="flex">
+                  <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                    <i class="fa fa-leaf text-primary"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold mb-1">高性价比</h3>
+                    <p class="text-gray-700 text-sm">亲民价格，优质体验，满足日常口腔清洁的所有需求</p>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-8" id="feedbackButtonContainer" style="opacity: 0.5; pointer-events: none;">
+                <a href="#" class="nav-link btn-primary block" data-page="survey">
+                  <span class="relative z-10">参与抽奖 <i class="fa fa-arrow-right ml-2"></i></span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl shadow-lg p-5 sm:p-8 overflow-hidden">
+            <h2 class="text-xl font-bold mb-4 text-center">产品规格</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-primary text-white">
+                    <th class="py-3 px-4 text-left rounded-tl-lg">参数</th>
+                    <th class="py-3 px-4 text-left rounded-tr-lg">规格</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">刷毛材质</td>
+                    <td class="py-3 px-4">高品质尼龙软毛</td>
+                  </tr>
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">刷毛数量</td>
+                    <td class="py-3 px-4">约2500根高密度排列</td>
+                  </tr>
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">手柄材质</td>
+                    <td class="py-3 px-4">食品级PP材质</td>
+                  </tr>
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">手柄长度</td>
+                    <td class="py-3 px-4">18cm</td>
+                  </tr>
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">特殊功能</td>
+                    <td class="py-3 px-4">防滑设计，舌苔清洁区</td>
+                  </tr>
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">适用人群</td>
+                    <td class="py-3 px-4">全年龄段通用</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 页面三：调研问卷（数据完整收集版） -->
+    <div id="survey" class="page">
+      <section class="pt-28 pb-12 md:pt-36 md:pb-24 bg-gradient-to-b from-white to-light">
+        <div class="container mx-auto mobile-padding">
+          <div class="max-w-3xl mx-auto">
+            <div class="text-center mb-8">
+              <h1 class="text-[clamp(1.5rem,6vw,2.5rem)] font-bold text-dark mb-3">参与抽奖活动</h1>
+              <p class="text-gray-700 text-base">填写简单信息，即有机会赢取以下精美奖品</p>
+            </div>
+            <form id="consumerSurveyForm" class="bg-white rounded-2xl p-5 sm:p-8 shadow-xl text-dark">
+              <!-- 产品相关问题（滑条打分） -->
+              <div class="mb-10 pb-6 border-b border-gray-100">
+                <h2 class="text-lg font-bold mb-5 text-primary/90">产品相关评价</h2>
+                <p class="text-gray-600 text-sm mb-6">请根据产品信息，给该款电动牙刷清洁能力各个维度打分，0-100 分之间（0 分＝完全没有效果，100 分＝非常有效）</p>
+                
+                <!-- 滑条1：亮白效果 -->
+                <div class="slider-container">
+                  <label class="slider-label">1. 您预计这款牙刷的整体清洁效果能达到多少分？</label>
+                  <div class="slider-value-wrapper">
+                    <span class="slider-value-display" id="whiteningEffectValue">0</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <input type="range" min="0" max="100" value="0" class="custom-slider" name="whiteningEffect" id="whiteningEffect">
+                  </div>
+                  <div class="slider-ticks">
+                    <span>0</span>
+                    <span>50</span>
+                    <span>100</span>
+                  </div>
+                </div>
+                
+                <!-- 滑条2：亮白提升 -->
+                <div class="slider-container">
+                  <label class="slider-label">2. 您预计这款牙刷能在多大程度上帮助你把牙齿刷干净，请打分？</label>
+                  <div class="slider-value-wrapper">
+                    <span class="slider-value-display" id="whiteningPotentialValue">0</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <input type="range" min="0" max="100" value="0" class="custom-slider" name="whiteningPotential" id="whiteningPotential">
+                  </div>
+                  <div class="slider-ticks">
+                    <span>0</span>
+                    <span>50</span>
+                    <span>100</span>
+                  </div>
+                </div>
+                
+                <!-- 滑条3：去渍效果 -->
+                <div class="slider-container">
+                  <label class="slider-label">3. 您预计这款牙刷在减少牙菌斑或牙面污渍方面的效果能达到多少分？</label>
+                  <div class="slider-value-wrapper">
+                    <span class="slider-value-display" id="stainRemovalValue">0</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <input type="range" min="0" max="100" value="0" class="custom-slider" name="stainRemoval" id="stainRemoval">
+                  </div>
+                  <div class="slider-ticks">
+                    <span>0</span>
+                    <span>50</span>
+                    <span>100</span>
+                  </div>
+                </div>
+                
+                <!-- 滑条4：清洁动力 -->
+                <div class="slider-container">
+                  <label class="slider-label">4. 您预计这款牙刷的清洁的有效程度能达到多少分？</label>
+                  <div class="slider-value-wrapper">
+                    <span class="slider-value-display" id="cleaningPowerValue">0</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <input type="range" min="0" max="100" value="0" class="custom-slider" name="cleaningPower" id="cleaningPower">
+                  </div>
+                  <div class="slider-ticks">
+                    <span>0</span>
+                    <span>50</span>
+                    <span>100</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 个人状态相关问题 -->
+              <div class="mb-10 pb-6 border-b border-gray-100">
+                <h2 class="text-lg font-bold mb-5 text-primary/90">个人状态评价</h2>
+                <p class="text-gray-600 text-sm mb-6">请根据您刚刚阅读网页的实际感受，给下面条目打分，1-7 分之间（1=一点也没有，7=非常多）</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- 滑条5：不稳定感受 -->
+                  <div class="slider-container">
+                    <label class="slider-label">5. 此刻，你在多大程度上感受到不稳定的状态？</label>
+                    <div class="slider-value-wrapper">
+                      <span class="slider-value-display" id="instabilityFeelingValue">1</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <input type="range" min="1" max="7" value="1" class="custom-slider" name="instabilityFeeling" id="instabilityFeeling">
+                    </div>
+                    <div class="slider-ticks">
+                      <span>1</span>
+                      <span>4</span>
+                      <span>7</span>
+                    </div>
+                  </div>
+                  
+                  <!-- 滑条6：不稳定确认 -->
+                  <div class="slider-container">
+                    <label class="slider-label">6. 此刻，我感受到了不稳定的状态。</label>
+                    <div class="slider-value-wrapper">
+                      <span class="slider-value-display" id="instabilityConfirmationValue">1</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <input type="range" min="1" max="7" value="1" class="custom-slider" name="instabilityConfirmation" id="instabilityConfirmation">
+                    </div>
+                    <div class="slider-ticks">
+                      <span>1</span>
+                      <span>4</span>
+                      <span>7</span>
+                    </div>
+                  </div>
+                  
+                  <!-- 滑条7：稳定感受 -->
+                  <div class="slider-container">
+                    <label class="slider-label">7. 此刻，你在多大程度上感受到稳定的状态？</label>
+                    <div class="slider-value-wrapper">
+                      <span class="slider-value-display" id="stabilityFeelingValue">1</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <input type="range" min="1" max="7" value="1" class="custom-slider" name="stabilityFeeling" id="stabilityFeeling">
+                    </div>
+                    <div class="slider-ticks">
+                      <span>1</span>
+                      <span>4</span>
+                      <span>7</span>
+                    </div>
+                  </div>
+                  
+                  <!-- 滑条8：产品不稳定 -->
+                  <div class="slider-container">
+                    <label class="slider-label">8. 刚才浏览网站上的产品图片时，你在多大程度上感受到图片中的产品不稳定？</label>
+                    <div class="slider-value-wrapper">
+                      <span class="slider-value-display" id="productInstabilityValue">1</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <input type="range" min="1" max="7" value="1" class="custom-slider" name="productInstability" id="productInstability">
+                    </div>
+                    <div class="slider-ticks">
+                      <span>1</span>
+                      <span>4</span>
+                      <span>7</span>
+                    </div>
+                  </div>
+                  
+                  <!-- 滑条9：产品不稳固 -->
+                  <div class="slider-container">
+                    <label class="slider-label">9. 刚才浏览网站上的产品图片时，你在多大程度上感受到图片中的产品不稳固？</label>
+                    <div class="slider-value-wrapper">
+                      <span class="slider-value-display" id="productUnsteadinessValue">1</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <input type="range" min="1" max="7" value="1" class="custom-slider" name="productUnsteadiness" id="productUnsteadiness">
+                    </div>
+                    <div class="slider-ticks">
+                      <span>1</span>
+                      <span>4</span>
+                      <span>7</span>
+                    </div>
+                  </div>
+                  
+                  <!-- 滑条10：产品稳定 -->
+                  <div class="slider-container">
+                    <label class="slider-label">10. 刚才浏览网站上的产品图片时，你在多大程度上感受到图片中的产品很稳定？</label>
+                    <div class="slider-value-wrapper">
+                      <span class="slider-value-display" id="productStabilityValue">1</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <input type="range" min="1" max="7" value="1" class="custom-slider" name="productStability" id="productStability">
+                    </div>
+                    <div class="slider-ticks">
+                      <span>1</span>
+                      <span>4</span>
+                      <span>7</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 个人信息 -->
+              <div class="mb-10 pb-6 border-b border-gray-100">
+                <h2 class="text-lg font-bold mb-5 text-primary/90">个人信息</h2>
+                <div class="grid grid-cols-1 gap-5">
+                  <div>
+                    <label class="block text-gray-700 font-medium mb-2 text-sm" for="gender">性别 <span class="text-red-500">*</span></label>
+                    <select id="gender" name="gender" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-300 text-base" required>
+                      <option value="">请选择性别</option>
+                      <option value="男">男</option>
+                      <option value="女">女</option>
+                      <option value="不愿透露">不愿透露</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-gray-700 font-medium mb-2 text-sm" for="age">年龄 <span class="text-red-500">*</span></label>
+                    <input type="number" id="age" name="age" min="1" max="120" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-300 text-base" placeholder="请输入您的年龄" required>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 奖品选择 -->
+              <div class="mb-8">
+                <h2 class="text-lg font-bold mb-5 text-primary/90">抽奖奖品</h2>
+                <p class="text-gray-600 text-sm mb-5">我们将随机抽取幸运用户赠送以下任意一款牙刷</p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="prize-option border-2 rounded-xl p-4 cursor-pointer hover:shadow-md transition-all" data-prize="SparkleClean Pro 电动牙刷（款式1）">
+                    <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDdpOUbuj9w7yaifTukW8DiIZKSOEQACThwAApKD0FVYUnIixSSO2zYE.jpg" alt="SparkleClean Pro 电动牙刷（款式1）" class="w-full h-auto rounded-lg mb-3">
+                    <h3 class="font-bold text-center text-sm text-gray-800">款式1</h3>
+                  </div>
+                  <div class="prize-option border-2 border-gray-200 rounded-xl p-4 cursor-pointer hover:shadow-md transition-all" data-prize="SparkleClean Pro 电动牙刷（款式2）">
+                    <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDppOUcFPHIo0UvGipp4Ui4TE2TGQgACURwAApKD0FXsKYrqhOIlFDYE.jpg" alt="SparkleClean Pro 电动牙刷（款式2）" class="w-full h-auto rounded-lg mb-3">
+                    <h3 class="font-bold text-center text-sm text-gray-800">款式2</h3>
+                  </div>
+                  <div class="prize-option border-2 border-gray-200 rounded-xl p-4 cursor-pointer hover:shadow-md transition-all" data-prize="SparkleClean Pro 电动牙刷（款式3）">
+                    <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDtpOUcYhwzZAmlxf0ui-yMBijU5mAACUhwAApKD0FXTQYSE0vZlmDYE.jpg" alt="SparkleClean Pro 电动牙刷（款式3）" class="w-full h-auto rounded-lg mb-3">
+                    <h3 class="font-bold text-center text-sm text-gray-800">款式3</h3>
+                  </div>
+                  <div class="prize-option border-2 border-gray-200 rounded-xl p-4 cursor-pointer hover:shadow-md transition-all" data-prize="SparkleClean Pro 电动牙刷（款式4）">
+                    <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcD1pOUcklWldv5lP6alRnQ8h6NJ6HgACVBwAApKD0FU_IUKdC_qvyDYE.jpg" alt="SparkleClean Pro 电动牙刷（款式4）" class="w-full h-auto rounded-lg mb-3">
+                    <h3 class="font-bold text-center text-sm text-gray-800">款式4</h3>
+                  </div>
+                </div>
+                <input type="hidden" name="preferredPrize" id="preferredPrize" required>
+              </div>
+              
+              <!-- 提交按钮 -->
+              <button type="submit" id="lotteryBtn" class="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-medium py-4 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center text-base">
+                <span id="btnText">参与抽奖</span>
+              </button>
+              
+              <div class="text-center text-gray-600 text-xs mt-5">
+                <p>提交即表示您同意我们的<a href="#" class="text-primary hover:underline">隐私政策</a>，我们将保护您的个人信息</p>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 未中奖页面 -->
+    <div id="noPrizePage" class="page">
+      <section class="pt-36 pb-24 bg-gradient-to-b from-white to-light flex items-center justify-center min-h-screen">
+        <div class="container mx-auto mobile-padding text-center max-w-2xl">
+          <div class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6">
+            <i class="fa fa-meh-o text-3xl text-gray-500"></i>
+          </div>
+          <h1 class="text-[clamp(1.5rem,6vw,2.5rem)] font-bold text-dark mb-4">很遗憾，这次未中奖</h1>
+          <p class="text-gray-700 text-base mb-8 leading-relaxed">
+            感谢您参与我们的抽奖活动！虽然这次没有中奖，但我们会定期举办类似活动，
+            请继续关注我们的产品动态，下次还有机会赢取精美奖品！
+          </p>
+          <a href="#" class="btn-primary inline-block" id="backToHome">
+            <span class="relative z-10">返回首页</span>
+          </a>
+          <div class="mt-12 text-gray-500 text-sm">
+            <p>活动最终解释权归 SparkleClean 品牌所有</p>
+            <p class="mt-1">如有疑问，请联系客服：support@sparkleclean.com</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- 图片放大模态框 -->
+  <div id="imageModal" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center hidden">
+    <div class="relative max-w-full w-full px-4">
+      <button id="prevImage" class="modal-nav-btn left-2">
+        <i class="fa fa-chevron-left text-xl"></i>
+      </button>
+      <button id="nextImage" class="modal-nav-btn right-2">
+        <i class="fa fa-chevron-right text-xl"></i>
+      </button>
+      <button id="closeImageModal" class="absolute -top-10 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors duration-300 text-white">
+        <i class="fa fa-times text-lg"></i>
+      </button>
+      <div class="absolute bottom-3 left-0 right-0 text-center text-white bg-black/60 backdrop-blur-sm py-2 px-3 rounded-full max-w-xs mx-auto text-sm">
+        <span id="imageCounter">1/4</span>
+      </div>
+      <img id="modalImage" src="" alt="放大的产品图片" class="w-full h-auto max-h-[80vh] object-contain rounded-lg">
+    </div>
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 初始化 LeanCloud SDK
+    const AV = window.AV;
+    AV.init({
+      appId: "j74qfXfTcYVzMUbS1zoUu9zE-gzGzoHsz",
+      appKey: "WrY0n0sbU9YTKD4IWSo0wsNH",
+      serverURLs: "https://j74qfxft.lc-cn-n1-shared.com"
+    });
+
+    // 页面导航功能
+    const navLinks = document.querySelectorAll('.nav-link');
+    const pages = document.querySelectorAll('.page');
+    
+    navLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetPage = this.getAttribute('data-page');
+        
+        pages.forEach(page => {
+          page.classList.remove('active');
+        });
+        
+        document.getElementById(targetPage).classList.add('active');
+        updateProgress(targetPage);
+        window.scrollTo(0, 0);
+      });
+    });
+    
+    // 返回首页按钮
+    document.getElementById('backToHome').addEventListener('click', function(e) {
+      e.preventDefault();
+      pages.forEach(page => {
+        page.classList.remove('active');
+      });
+      document.getElementById('home').classList.add('active');
+      updateProgress('home');
+      window.scrollTo(0, 0);
+    });
+    
+    // 首页链接
+    document.getElementById('homeLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      pages.forEach(page => {
+        page.classList.remove('active');
+      });
+      document.getElementById('home').classList.add('active');
+      updateProgress('home');
+      window.scrollTo(0, 0);
+    });
+    
+    // 更新进度条
+    function updateProgress(pageId) {
+      let progress1 = 0, progress2 = 0;
+      let mobileProgress1 = 'bg-primary', mobileProgress2 = 'bg-gray-300', mobileProgress3 = 'bg-gray-300';
+      
+      if (pageId === 'product') {
+        progress1 = 100;
+        mobileProgress2 = 'bg-primary';
+      } else if (pageId === 'survey' || pageId === 'noPrizePage') {
+        progress1 = 100;
+        progress2 = 100;
+        mobileProgress2 = 'bg-primary';
+        mobileProgress3 = 'bg-primary';
+      }
+      
+      document.getElementById('progressBar1').style.width = progress1 + '%';
+      document.getElementById('progressBar2').style.width = progress2 + '%';
+      
+      document.getElementById('mobileProgress1').className = `w-2 h-2 rounded-full ${mobileProgress1}`;
+      document.getElementById('mobileProgress2').className = `w-2 h-2 rounded-full ${mobileProgress2}`;
+      document.getElementById('mobileProgress3').className = `w-2 h-2 rounded-full ${mobileProgress3}`;
+    }
+    
+    // 产品图片浏览功能
+    const thumbnails = document.querySelectorAll('.product-thumb');
+    const mainImage = document.getElementById('mainProductImage');
+    const imageProgress = document.getElementById('imageProgress');
+    const feedbackButton = document.getElementById('feedbackButtonContainer');
+    const scrollLeftBtn = document.getElementById('scrollLeft');
+    const scrollRightBtn = document.getElementById('scrollRight');
+    const thumbScroll = document.getElementById('thumbScroll');
+    
+    let viewedImages = new Set();
+    let currentImageId = 1;
+    
+    // 检查是否所有图片都已浏览
+    function checkAllImagesViewed() {
+      if (viewedImages.size === 4) {
+        feedbackButton.style.opacity = '1';
+        feedbackButton.style.pointerEvents = 'auto';
+      }
+    }
+    
+    // 更新图片进度显示
+    function updateImageProgress() {
+      imageProgress.innerHTML = `请浏览所有产品图片以继续：<span class="text-primary">${viewedImages.size}/4</span>`;
+    }
+    
+    thumbnails.forEach(thumb => {
+      thumb.addEventListener('click', function() {
+        const imgSrc = this.getAttribute('data-img');
+        const imgId = this.getAttribute('data-id');
+        
+        mainImage.src = imgSrc;
+        currentImageId = parseInt(imgId);
+        
+        // 标记为已浏览
+        viewedImages.add(imgId);
+        updateImageProgress();
+        checkAllImagesViewed();
+        
+        // 更新选中状态
+        thumbnails.forEach(t => t.classList.remove('selected', 'ring-2', 'ring-primary'));
+        this.classList.add('selected', 'ring-2', 'ring-primary');
+      });
+    });
+    
+    // 缩略图滚动功能
+    scrollRightBtn.addEventListener('click', () => {
+      thumbScroll.scrollBy({ left: 150, behavior: 'smooth' });
+    });
+    
+    scrollLeftBtn.addEventListener('click', () => {
+      thumbScroll.scrollBy({ left: -150, behavior: 'smooth' });
+    });
+    
+    // 监听滚动以显示/隐藏滚动按钮
+    const thumbContainer = document.getElementById('thumbContainer');
+    thumbContainer.addEventListener('scroll', () => {
+      const scrollLeft = thumbContainer.scrollLeft;
+      const scrollWidth = thumbScroll.scrollWidth - thumbContainer.clientWidth;
+      
+      if (scrollLeft > 50) {
+        scrollLeftBtn.style.opacity = '1';
+        scrollLeftBtn.style.pointerEvents = 'auto';
+      } else {
+        scrollLeftBtn.style.opacity = '0';
+        scrollLeftBtn.style.pointerEvents = 'none';
+      }
+      
+      if (scrollLeft < scrollWidth - 50) {
+        scrollRightBtn.style.opacity = '1';
+        scrollRightBtn.style.pointerEvents = 'auto';
+      } else {
+        scrollRightBtn.style.opacity = '0';
+        scrollRightBtn.style.pointerEvents = 'none';
+      }
+    });
+    
+    // 图片放大模态框功能
+    const imageModal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const closeModal = document.getElementById('closeImageModal');
+    const prevImageBtn = document.getElementById('prevImage');
+    const nextImageBtn = document.getElementById('nextImage');
+    const imageCounter = document.getElementById('imageCounter');
+    
+    mainImage.addEventListener('click', () => {
+      openImageModal(currentImageId);
+    });
+    
+    function openImageModal(id) {
+      const imgSrc = document.querySelector(`.product-thumb[data-id="${id}"]`).getAttribute('data-img');
+      modalImage.src = imgSrc;
+      currentImageId = id;
+      imageCounter.textContent = `${id}/4`;
+      imageModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      
+      // 标记为已浏览
+      viewedImages.add(id.toString());
+      updateImageProgress();
+      checkAllImagesViewed();
+    }
+    
+    closeModal.addEventListener('click', () => {
+      imageModal.classList.add('hidden');
+      document.body.style.overflow = '';
+    });
+    
+    prevImageBtn.addEventListener('click', () => {
+      let newId = currentImageId - 1;
+      if (newId < 1) newId = 4;
+      openImageModal(newId);
+    });
+    
+    nextImageBtn.addEventListener('click', () => {
+      let newId = currentImageId + 1;
+      if (newId > 4) newId = 1;
+      openImageModal(newId);
+    });
+    
+    // 点击模态框背景关闭
+    imageModal.addEventListener('click', (e) => {
+      if (e.target === imageModal) {
+        imageModal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    });
+    
+    // 滑条值显示功能（完整绑定所有滑条）
+    const sliderConfig = [
+      { id: 'whiteningEffect', min: 0, max: 100 },
+      { id: 'whiteningPotential', min: 0, max: 100 },
+      { id: 'stainRemoval', min: 0, max: 100 },
+      { id: 'cleaningPower', min: 0, max: 100 },
+      { id: 'instabilityFeeling', min: 1, max: 7 },
+      { id: 'instabilityConfirmation', min: 1, max: 7 },
+      { id: 'stabilityFeeling', min: 1, max: 7 },
+      { id: 'productInstability', min: 1, max: 7 },
+      { id: 'productUnsteadiness', min: 1, max: 7 },
+      { id: 'productStability', min: 1, max: 7 }
+    ];
+    
+    // 初始化所有滑条
+    sliderConfig.forEach(item => {
+      const slider = document.getElementById(item.id);
+      const valueDisplay = document.getElementById(`${item.id}Value`);
+      
+      // 更新显示值
+      function updateSliderValue() {
+        valueDisplay.textContent = slider.value;
+        
+        // 添加数值变化动画
+        valueDisplay.classList.add('scale-110');
+        setTimeout(() => {
+          valueDisplay.classList.remove('scale-110');
+        }, 200);
+      }
+      
+      // 初始化显示
+      updateSliderValue();
+      
+      // 滑动时更新
+      slider.addEventListener('input', updateSliderValue);
+      slider.addEventListener('change', updateSliderValue); // 确保值最终更新
+      
+      // 触摸设备优化
+      slider.addEventListener('touchmove', function() {
+        updateSliderValue();
+      }, { passive: true });
+    });
+    
+    // 奖品选择功能
+    const prizeOptions = document.querySelectorAll('.prize-option');
+    const preferredPrizeInput = document.getElementById('preferredPrize');
+    
+    // 默认选中第一个奖品
+    if (prizeOptions.length > 0 && !preferredPrizeInput.value) {
+      prizeOptions[0].classList.add('selected', 'border-primary');
+      preferredPrizeInput.value = prizeOptions[0].getAttribute('data-prize');
+    }
+    
+    prizeOptions.forEach(option => {
+      option.addEventListener('click', function() {
+        prizeOptions.forEach(opt => opt.classList.remove('selected', 'border-primary'));
+        this.classList.add('selected', 'border-primary');
+        preferredPrizeInput.value = this.getAttribute('data-prize');
+      });
+    });
+    
+    // 表单提交和完整数据上传功能
+    const surveyForm = document.getElementById('consumerSurveyForm');
+    const lotteryBtn = document.getElementById('lotteryBtn');
+    const btnText = document.getElementById('btnText');
+    
+    surveyForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // 表单验证
+      if (!document.getElementById('gender').value) {
+        alert('请选择性别！');
+        return;
+      }
+      
+      if (!document.getElementById('age').value || document.getElementById('age').value < 1 || document.getElementById('age').value > 120) {
+        alert('请输入有效的年龄（1-120岁）！');
+        return;
+      }
+      
+      if (!preferredPrizeInput.value) {
+        alert('请选择心仪的奖品！');
+        return;
+      }
+      
+      // 显示加载状态
+      lotteryBtn.disabled = true;
+      btnText.innerHTML = '<span class="lottery-loading"></span> 提交中...';
+      
+      // 完整收集所有表单数据
+      const formData = {
+        // 产品相关评价（4项）
+        whiteningEffect: parseInt(document.getElementById('whiteningEffect').value),
+        whiteningPotential: parseInt(document.getElementById('whiteningPotential').value),
+        stainRemoval: parseInt(document.getElementById('stainRemoval').value),
+        cleaningPower: parseInt(document.getElementById('cleaningPower').value),
+        
+        // 个人状态评价（6项）
+        instabilityFeeling: parseInt(document.getElementById('instabilityFeeling').value),
+        instabilityConfirmation: parseInt(document.getElementById('instabilityConfirmation').value),
+        stabilityFeeling: parseInt(document.getElementById('stabilityFeeling').value),
+        productInstability: parseInt(document.getElementById('productInstability').value),
+        productUnsteadiness: parseInt(document.getElementById('productUnsteadiness').value),
+        productStability: parseInt(document.getElementById('productStability').value),
+        
+        // 个人信息
+        gender: document.getElementById('gender').value,
+        age: parseInt(document.getElementById('age').value),
+        preferredPrize: preferredPrizeInput.value,
+        
+        // 扩展数据（确保完整性）
+        userAgent: navigator.userAgent,
+        submitTime: new Date().toISOString(),
+        timestamp: Date.now(),
+        formComplete: true
+      };
+      
+      console.log('提交的完整数据：', formData); // 调试用，可删除
+      
+      // 创建 LeanCloud 数据对象
+      const SurveyResult = AV.Object.extend('SurveyResult');
+      const surveyResult = new SurveyResult();
+      
+      // 保存完整数据到 LeanCloud
+      surveyResult.save(formData)
+        .then(function(savedObject) {
+          console.log('调研数据保存成功，ID：', savedObject.id);
+          
+          // 模拟抽奖过程
+          setTimeout(function() {
+            // 目前默认都是未中奖状态
+            pages.forEach(page => {
+              page.classList.remove('active');
+            });
+            document.getElementById('noPrizePage').classList.add('active');
+            window.scrollTo(0, 0);
+            
+            // 重置按钮状态
+            lotteryBtn.disabled = false;
+            btnText.textContent = '参与抽奖';
+          }, 1500);
+        })
+        .catch(function(error) {
+          console.error('调研数据保存失败:', error);
+          
+          // 显示详细错误信息
+          alert(`提交失败：${error.message || '网络错误，请稍后重试'}`);
+          
+          // 重置按钮状态
+          lotteryBtn.disabled = false;
+          btnText.textContent = '参与抽奖';
+        });
+    });
+    
+    // 导航栏滚动效果
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', function() {
+      if (window.scrollY > 50) {
+        navbar.classList.add('shadow-md');
+        navbar.classList.remove('shadow-sm');
+      } else {
+        navbar.classList.remove('shadow-md');
+        navbar.classList.add('shadow-sm');
+      }
+    });
+    
+    // 移动端优化：解决键盘弹出后布局错乱问题
+    window.addEventListener('resize', function() {
+      if (window.innerHeight < 500) {
+        document.body.style.minHeight = `${window.innerHeight}px`;
+      } else {
+        document.body.style.minHeight = '100vh';
+      }
+    });
+  });
+  </script>
+</body>
+</html>
