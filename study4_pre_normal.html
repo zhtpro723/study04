@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SparkleClean Pro - 产品介绍</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#36CFC9',
+            accent: '#FF7D00',
+            dark: '#1D2129',
+            light: '#F2F3F5'
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+    
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto { content-visibility: auto; }
+      .text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+      .transition-custom { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      .hover-scale { transition: transform 0.3s ease; }
+      .hover-scale:hover { transform: scale(1.03); }
+      .bg-gradient-custom { background: linear-gradient(135deg, #165DFF 0%, #36CFC9 100%); }
+      .loading { animation: pulse 2s infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+      .page {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .mobile-padding { @apply px-4 sm:px-6 lg:px-8; }
+      .mobile-margin { @apply mx-4 sm:mx-6 lg:mx-8; }
+      .thumb-scroll-container { @apply relative overflow-hidden; }
+      .thumb-scroll { @apply flex space-x-3 transition-transform duration-300 ease-out; }
+      .scroll-btn {
+        @apply absolute top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center text-primary hover:bg-white transition-colors duration-300 z-10;
+      }
+      .modal-nav-btn {
+        @apply absolute top-1/2 transform -translate-y-1/2 w-14 h-14 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors duration-300 z-10;
+      }
+    }
+    
+    /* 移动端适配优化 */
+    @media (max-width: 640px) {
+      section {
+        padding-top: 20px !important;
+        padding-bottom: 12px !important;
+      }
+      
+      h2 {
+        font-size: 1rem !important;
+        margin-bottom: 6px !important;
+        padding-top: 4px !important;
+      }
+      
+      p {
+        font-size: 0.8rem !important;
+        line-height: 1.4 !important;
+        margin-bottom: 8px !important;
+      }
+      
+      /* 产品缩略图移动端优化 */
+      .product-thumb {
+        width: 60px !important;
+        height: 60px !important;
+      }
+      
+      /* 表格移动端优化 */
+      table {
+        font-size: 0.85rem !important;
+      }
+      
+      th, td {
+        padding: 12px 8px !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="font-inter bg-light text-dark antialiased">
+  <!-- 导航栏 -->
+  <header id="navbar" class="fixed w-full z-50 transition-all duration-300 bg-white/98 backdrop-blur-sm shadow-sm">
+    <div class="container mx-auto mobile-padding">
+      <div class="flex justify-between items-center py-3">
+        <a href="#" class="flex items-center space-x-2" id="homeLink">
+          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+            <i class="fa fa-bolt text-white text-sm"></i>
+          </div>
+          <span class="text-base sm:text-xl font-bold text-primary">SparkleClean Pro</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-2">
+          <div class="w-3 h-3 rounded-full bg-primary"></div>
+          <div class="w-8 h-1 bg-gray-300">
+            <div class="h-full bg-primary transition-all duration-500" style="width: 100%"></div>
+          </div>
+          <div class="w-3 h-3 rounded-full bg-primary"></div>
+          <div class="w-8 h-1 bg-gray-300">
+            <div class="h-full bg-primary transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <div class="w-3 h-3 rounded-full bg-gray-300"></div>
+        </div>
+        <div class="flex md:hidden items-center space-x-1">
+          <div class="w-2 h-2 rounded-full bg-primary"></div>
+          <div class="w-2 h-2 rounded-full bg-primary"></div>
+          <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 产品介绍页面 -->
+    <div id="product" class="page">
+      <section class="pt-28 pb-12 md:pt-36 md:pb-24 bg-gradient-to-b from-white to-light">
+        <div class="container mx-auto mobile-padding">
+          <div class="text-center mb-10">
+            <h1 class="text-[clamp(1.5rem,6vw,2.5rem)] font-bold text-dark mb-3">SparkleClean Pro 普通牙刷</h1>
+            <p class="text-gray-600 text-base" id="imageProgress">产品图片浏览：<span class="text-primary">0/4</span></p>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-12">
+            <div class="relative">
+              <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDdpOUbuj9w7yaifTukW8DiIZKSOEQACThwAApKD0FVYUnIixSSO2zYE.jpg"  alt="SparkleClean Pro 普通牙刷（紫色款）" class="w-full h-auto rounded-2xl shadow-xl hover-scale cursor-pointer" id="mainProductImage">
+              <div class="thumb-scroll-container mt-4">
+                <button id="scrollLeft" class="scroll-btn left-1 opacity-0 pointer-events-none">
+                  <i class="fa fa-chevron-left"></i>
+                </button>
+                <div class="overflow-x-auto pb-3" id="thumbContainer">
+                  <div class="thumb-scroll" id="thumbScroll">
+                    <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDdpOUbuj9w7yaifTukW8DiIZKSOEQACThwAApKD0FVYUnIixSSO2zYE.jpg" alt="新款牙刷1" class="w-24 h-24 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer product-thumb selected" data-img="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDdpOUbuj9w7yaifTukW8DiIZKSOEQACThwAApKD0FVYUnIixSSO2zYE.jpg" data-id="1">
+                    <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDppOUcFPHIo0UvGipp4Ui4TE2TGQgACURwAApKD0FXsKYrqhOIlFDYE.jpg" alt="新款牙刷2" class="w-24 h-24 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer product-thumb" data-img="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDppOUcFPHIo0UvGipp4Ui4TE2TGQgACURwAApKD0FXsKYrqhOIlFDYE.jpg" data-id="2">
+                    <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDtpOUcYhwzZAmlxf0ui-yMBijU5mAACUhwAApKD0FXTQYSE0vZlmDYE.jpg" alt="新款牙刷3" class="w-24 h-24 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer product-thumb" data-img="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcDtpOUcYhwzZAmlxf0ui-yMBijU5mAACUhwAApKD0FXTQYSE0vZlmDYE.jpg" data-id="3">
+                    <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcD1pOUcklWldv5lP6alRnQ8h6NJ6HgACVBwAApKD0FU_IUKdC_qvyDYE.jpg" alt="新款牙刷4" class="w-24 h-24 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer product-thumb" data-img="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEMcD1pOUcklWldv5lP6alRnQ8h6NJ6HgACVBwAApKD0FU_IUKdC_qvyDYE.jpg" data-id="4">
+                  </div>
+                </div>
+                <button id="scrollRight" class="scroll-btn right-1">
+                  <i class="fa fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+            <div class="mt-4 lg:mt-0">
+              <!-- 已移除参与抽奖按钮 -->
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl shadow-lg p-5 sm:p-8 overflow-hidden">
+            <h2 class="text-xl font-bold mb-4 text-center">产品规格</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-primary text-white">
+                    <th class="py-3 px-4 text-left rounded-tl-lg">参数</th>
+                    <th class="py-3 px-4 text-left rounded-tr-lg">规格</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">刷毛材质</td>
+                    <td class="py-3 px-4">杜邦食品级尼龙软毛</td>
+                  </tr>
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">刷毛数量</td>
+                    <td class="py-3 px-4">约2500根高密度排列</td>
+                  </tr>
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">手柄材质</td>
+                    <td class="py-3 px-4">食品级PP材质</td>
+                  </tr>
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">手柄长度</td>
+                    <td class="py-3 px-4">18cm</td>
+                  </tr>
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">特殊功能</td>
+                    <td class="py-3 px-4">防滑设计，舌苔清洁区</td>
+                  </tr>
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">适用人群</td>
+                    <td class="py-3 px-4">全年龄段通用</td>
+                  </tr>
+                  <tr class="hover:bg-light transition-colors duration-300">
+                    <td class="py-3 px-4 font-medium">价格</td>
+                    <td class="py-3 px-4">￥128</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- 图片放大模态框 -->
+  <div id="imageModal" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center hidden">
+    <div class="relative max-w-full w-full px-4">
+      <button id="prevImage" class="modal-nav-btn left-2">
+        <i class="fa fa-chevron-left text-xl"></i>
+      </button>
+      <button id="nextImage" class="modal-nav-btn right-2">
+        <i class="fa fa-chevron-right text-xl"></i>
+      </button>
+      <img src="" alt="产品大图" class="max-h-[90vh] w-auto mx-auto" id="modalImage">
+      <button id="closeModal" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors duration-300">
+        <i class="fa fa-times text-xl"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // 产品图片切换功能
+    document.addEventListener('DOMContentLoaded', function() {
+      const mainImage = document.getElementById('mainProductImage');
+      const thumbImages = document.querySelectorAll('.product-thumb');
+      const scrollLeft = document.getElementById('scrollLeft');
+      const scrollRight = document.getElementById('scrollRight');
+      const thumbScroll = document.getElementById('thumbScroll');
+      const imageProgress = document.getElementById('imageProgress');
+      const imageModal = document.getElementById('imageModal');
+      const modalImage = document.getElementById('modalImage');
+      const closeModal = document.getElementById('closeModal');
+      const prevImage = document.getElementById('prevImage');
+      const nextImage = document.getElementById('nextImage');
+      
+      let currentImageId = 1;
+      let viewedImages = new Set();
+      viewedImages.add(1);
+      
+      // 更新进度显示
+      function updateProgress() {
+        imageProgress.innerHTML = `产品图片浏览：<span class="text-primary">${viewedImages.size}/4</span>`;
+      }
+      
+      // 缩略图点击事件
+      thumbImages.forEach(thumb => {
+        thumb.addEventListener('click', function() {
+          // 移除所有选中状态
+          thumbImages.forEach(t => t.classList.remove('selected', 'ring-2', 'ring-primary'));
+          // 添加当前选中状态
+          this.classList.add('selected', 'ring-2', 'ring-primary');
+          
+          // 更新主图
+          const imgSrc = this.getAttribute('data-img');
+          const imgId = parseInt(this.getAttribute('data-id'));
+          mainImage.src = imgSrc;
+          currentImageId = imgId;
+          
+          // 记录已查看的图片
+          viewedImages.add(imgId);
+          updateProgress();
+        });
+        
+        // 添加选中样式
+        thumb.classList.add('ring-2', 'ring-transparent');
+        if (thumb.classList.contains('selected')) {
+          thumb.classList.replace('ring-transparent', 'ring-primary');
+        }
+      });
+      
+      // 滚动按钮功能
+      scrollRight.addEventListener('click', function() {
+        thumbScroll.scrollBy({ left: 200, behavior: 'smooth' });
+      });
+      
+      scrollLeft.addEventListener('click', function() {
+        thumbScroll.scrollBy({ left: -200, behavior: 'smooth' });
+      });
+      
+      // 检测滚动位置显示/隐藏滚动按钮
+      const thumbContainer = document.getElementById('thumbContainer');
+      thumbContainer.addEventListener('scroll', function() {
+        const scrollPos = thumbContainer.scrollLeft;
+        const maxScroll = thumbContainer.scrollWidth - thumbContainer.clientWidth;
+        
+        scrollLeft.style.opacity = scrollPos > 10 ? '1' : '0';
+        scrollLeft.style.pointerEvents = scrollPos > 10 ? 'auto' : 'none';
+        
+        scrollRight.style.opacity = scrollPos < maxScroll - 10 ? '1' : '0';
+        scrollRight.style.pointerEvents = scrollPos < maxScroll - 10 ? 'auto' : 'none';
+      });
+      
+      // 图片放大模态框
+      mainImage.addEventListener('click', function() {
+        modalImage.src = mainImage.src;
+        imageModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      });
+      
+      closeModal.addEventListener('click', function() {
+        imageModal.classList.add('hidden');
+        document.body.style.overflow = '';
+      });
+      
+      // 模态框图片切换
+      prevImage.addEventListener('click', function() {
+        currentImageId = currentImageId > 1 ? currentImageId - 1 : 4;
+        updateModalImage();
+      });
+      
+      nextImage.addEventListener('click', function() {
+        currentImageId = currentImageId < 4 ? currentImageId + 1 : 1;
+        updateModalImage();
+      });
+      
+      function updateModalImage() {
+        const newThumb = document.querySelector(`.product-thumb[data-id="${currentImageId}"]`);
+        if (newThumb) {
+          const newSrc = newThumb.getAttribute('data-img');
+          modalImage.src = newSrc;
+          mainImage.src = newSrc;
+          
+          // 更新缩略图选中状态
+          thumbImages.forEach(t => t.classList.remove('selected', 'ring-primary'));
+          newThumb.classList.add('selected', 'ring-primary');
+          
+          // 记录已查看的图片
+          viewedImages.add(currentImageId);
+          updateProgress();
+        }
+      }
+      
+      // 点击模态框外部关闭
+      imageModal.addEventListener('click', function(e) {
+        if (e.target === imageModal) {
+          imageModal.classList.add('hidden');
+          document.body.style.overflow = '';
+        }
+      });
+      
+      // 键盘导航
+      document.addEventListener('keydown', function(e) {
+        if (!imageModal.classList.contains('hidden')) {
+          if (e.key === 'Escape') {
+            imageModal.classList.add('hidden');
+            document.body.style.overflow = '';
+          } else if (e.key === 'ArrowLeft') {
+            prevImage.click();
+          } else if (e.key === 'ArrowRight') {
+            nextImage.click();
+          }
+        }
+      });
+      
+      // 初始化进度
+      updateProgress();
+    });
+  </script>
+</body>
+</html>
